@@ -1,8 +1,12 @@
-package com.kzone.springchecker.validator;
+package com.kzone.springchecker.validator.spring;
 
 import com.google.auto.service.AutoService;
+import com.kzone.springchecker.validator.BaseValidator;
 
-import javax.annotation.processing.*;
+import javax.annotation.processing.Processor;
+import javax.annotation.processing.RoundEnvironment;
+import javax.annotation.processing.SupportedAnnotationTypes;
+import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
 import javax.tools.Diagnostic;
@@ -10,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @SupportedAnnotationTypes({"org.springframework.web.bind.annotation.RestController"})

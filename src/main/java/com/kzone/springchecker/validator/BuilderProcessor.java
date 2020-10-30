@@ -1,7 +1,7 @@
 package com.kzone.springchecker.validator;
 
 import com.google.auto.service.AutoService;
-import com.kzone.springchecker.annotaion.SwaggerInfo;
+import com.kzone.springchecker.annotation.SwaggerInfo;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
@@ -11,7 +11,6 @@ import javax.tools.Diagnostic;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @SupportedAnnotationTypes({"com.kzone.swagger.annotaion.*"})
