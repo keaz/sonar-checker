@@ -1,30 +1,18 @@
-package com.kzone.springchecker.validator.generic;
+package com.kzone.sonarchecker.validator.generic;
 
 import com.google.auto.service.AutoService;
-import com.kzone.springchecker.validator.BaseValidator;
-import com.sun.source.tree.ExpressionTree;
-import com.sun.source.tree.ModifiersTree;
-import com.sun.source.tree.Tree;
-import com.sun.source.tree.VariableTree;
-import com.sun.source.util.*;
+import com.kzone.sonarchecker.validator.BaseValidator;
+import com.sun.source.util.Trees;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
-import javax.lang.model.element.*;
-import javax.tools.Diagnostic;
-import java.util.Iterator;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.TypeElement;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
-import static com.kzone.springchecker.validator.generic.FieldValidator.CONSTANT_FILTER;
-import static com.kzone.springchecker.validator.generic.FieldValidator.FIELD_FILTER;
-import static com.sun.source.util.TaskEvent.Kind.ANALYZE;
-import static com.sun.source.util.TaskEvent.Kind.PARSE;
 
 @SupportedAnnotationTypes({"com.kzone.springchecker.annotation.Request"})
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
@@ -55,10 +43,6 @@ public class RequestValidator extends BaseValidator {
 
     private void checkElement(Element element) {
         List<? extends Element> enclosedElements = element.getEnclosedElements();
-        
-        Set<? extends Element> methods = enclosedElements.stream().filter(MethodValidator.METHOD_FILTER).collect(Collectors.toSet());
-        System.out.println("*********  Methods "+ methods);
-        methods.forEach(method -> methodValidator.validateMethodBody(method));
 
         List<? extends AnnotationMirror> annotationMirrors = element.getAnnotationMirrors();
 

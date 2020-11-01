@@ -1,7 +1,7 @@
-package com.kzone.springchecker.validator.generic;
+package com.kzone.sonarchecker.validator.generic;
 
 import com.google.auto.service.AutoService;
-import com.kzone.springchecker.validator.BaseValidator;
+import com.kzone.sonarchecker.validator.BaseValidator;
 import com.sun.source.tree.*;
 import com.sun.source.util.*;
 import com.sun.tools.javac.tree.JCTree;

@@ -1,4 +1,4 @@
-package com.kzone.springchecker.validator;
+package com.kzone.sonarchecker.validator;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Messager;

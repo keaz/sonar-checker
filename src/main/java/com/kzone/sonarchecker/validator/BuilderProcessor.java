@@ -1,7 +1,7 @@
-package com.kzone.springchecker.validator;
+package com.kzone.sonarchecker.validator;
 
 import com.google.auto.service.AutoService;
-import com.kzone.springchecker.annotation.SwaggerInfo;
+import com.kzone.sonarchecker.annotation.SwaggerInfo;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;

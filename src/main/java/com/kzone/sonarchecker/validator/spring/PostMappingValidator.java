@@ -1,7 +1,7 @@
-package com.kzone.springchecker.validator.spring;
+package com.kzone.sonarchecker.validator.spring;
 
 import com.google.auto.service.AutoService;
-import com.kzone.springchecker.validator.BaseValidator;
+import com.kzone.sonarchecker.validator.BaseValidator;
 
 import javax.annotation.processing.Processor;
 import javax.annotation.processing.RoundEnvironment;
@@ -16,7 +16,6 @@ import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic;
-import java.util.Optional;
 import java.util.Set;
 
 @SupportedAnnotationTypes({"org.springframework.web.bind.annotation.PostMapping","org.springframework.web.bind.annotation.GetMapping",

@@ -1,4 +1,4 @@
-package com.kzone.springchecker.annotation;
+package com.kzone.sonarchecker.annotation;
 
 public @interface Servers {
 
