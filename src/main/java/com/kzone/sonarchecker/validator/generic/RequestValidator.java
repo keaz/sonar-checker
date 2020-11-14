@@ -2,9 +2,11 @@ package com.kzone.sonarchecker.validator.generic;
 
 import com.google.auto.service.AutoService;
 import com.kzone.sonarchecker.validator.BaseValidator;
-import com.sun.source.util.Trees;
 
-import javax.annotation.processing.*;
+import javax.annotation.processing.Processor;
+import javax.annotation.processing.RoundEnvironment;
+import javax.annotation.processing.SupportedAnnotationTypes;
+import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
@@ -20,16 +22,6 @@ import java.util.logging.Logger;
 public class RequestValidator extends BaseValidator {
 
     Logger logger = Logger.getLogger(RequestValidator.class.getName());
-    private final FieldValidator fieldValidator = new FieldValidator();
-    private final MethodValidator methodValidator = new MethodValidator();
-    Trees trees = null;
-
-    @Override
-    public synchronized void init(ProcessingEnvironment processingEnv) {
-        super.init(processingEnv);
-        trees = Trees.instance(processingEnv);
-
-    }
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {

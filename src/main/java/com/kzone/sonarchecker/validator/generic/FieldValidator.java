@@ -20,7 +20,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -33,14 +32,6 @@ public class FieldValidator extends BaseValidator {
 
     private static final Pattern INSTANCE_FIELD_NAME_PATTERN = Pattern.compile("^[a-z][a-zA-Z0-9]*$");
     private static final Pattern CONSTANT_NAME_PATTERN = Pattern.compile("^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$");
-
-    public static final Predicate<? super Element> FIELD_FILTER = element -> element.getKind() == ElementKind.FIELD && !element.getModifiers().contains(Modifier.STATIC);
-    public static final Predicate<? super Element> CONSTANT_FILTER = element -> {
-        Set<Modifier> modifiers = element.getModifiers();
-        return element.getKind() == ElementKind.FIELD && modifiers.contains(Modifier.STATIC) && modifiers.contains(Modifier.FINAL);
-    };
-
-    private Trees trees = null;
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
@@ -94,9 +85,9 @@ public class FieldValidator extends BaseValidator {
             ElementKind kind = variable.getKind();
             if (isField(kind, modifiers)) {
                 validateFieldName(variable);
-            }else if (isParameter(kind)) {
+            } else if (isParameter(kind)) {
                 validateFieldName(variable);
-            }else if (isConstant(kind, modifiers)) {
+            } else if (isConstant(kind, modifiers)) {
                 validateConstantName(variable);
             }
 
