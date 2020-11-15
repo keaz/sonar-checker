@@ -65,12 +65,11 @@ public class ClassValidator extends BaseValidator {
         public Void visitClass(ClassTree node, Void unused) {
             super.visitClass(node, unused);
 
-            TreePath currentPath = getCurrentPath();
-            Element classEl = trees.getElement(trees.getPath(currentPath.getCompilationUnit(), node));
-
             List<? extends Tree> members = node.getMembers();
-            List<? extends MethodTree> methods = (List<? extends MethodTree>) members.stream().filter(member -> member.getKind() == Tree.Kind.METHOD).collect(Collectors.toList());
-            List<? extends VariableTree> fields = (List<? extends VariableTree>)members.stream().filter(member -> member.getKind() == Tree.Kind.VARIABLE).collect(Collectors.toList());
+            List<? extends MethodTree> methods =  members.stream().filter(member -> member.getKind() == Tree.Kind.METHOD)
+                    .map(tree -> (MethodTree)tree).collect(Collectors.toList());
+            List<? extends VariableTree> fields = members.stream().filter(member -> member.getKind() == Tree.Kind.VARIABLE)
+                    .map(tree -> (VariableTree)tree).collect(Collectors.toList());
 
             validateEqualsHashCodeMethods(methods);
             checkMethodNameFieldNameSame(methods,fields);
