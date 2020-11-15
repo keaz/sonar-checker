@@ -56,11 +56,6 @@ public class MethodValidator extends BaseValidator {
         return false;
     }
 
-    public void validateMethodBody(Element element) {
-
-
-//        ExecutableType method = (ExecutableType) element.asType();
-    }
 
     class MethodTreeScanner extends TreePathScanner<Void, Void> {
         private final Trees trees;
@@ -112,7 +107,7 @@ public class MethodValidator extends BaseValidator {
         }
 
 
-        
+
 
     }
 }
