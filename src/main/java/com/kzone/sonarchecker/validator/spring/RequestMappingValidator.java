@@ -1,47 +1,45 @@
-package com.kzone.springchecker.validator.spring;
+package com.kzone.sonarchecker.validator.spring;
 
 import com.google.auto.service.AutoService;
-import com.kzone.springchecker.validator.BaseValidator;
+import com.kzone.sonarchecker.validator.BaseValidator;
 
 import javax.annotation.processing.Processor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
-import javax.lang.model.element.*;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
-@SupportedAnnotationTypes({"org.springframework.beans.factory.annotation.Autowired"})
+@SupportedAnnotationTypes({"org.springframework.web.bind.annotation.RequestMapping"})
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 @AutoService(Processor.class)
-public class AutowiredValidator extends BaseValidator {
+public class RequestMappingValidator extends BaseValidator {
 
-    Logger logger = Logger.getLogger(AutowiredValidator.class.getName());
+    private final Logger logger = Logger.getLogger(RequestMappingValidator.class.getName());
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+        logger.log(Level.CONFIG, () -> "Validating annotations :: " + annotations);
         Optional<? extends TypeElement> first = annotations.stream().findFirst();
         if (first.isPresent()) {
             Set<? extends Element> elements = roundEnv.getElementsAnnotatedWith(first.get());
+            logger.log(Level.CONFIG, () -> "Elements annotated with :: " + elements);
             elements.forEach(this::checkElement);
         }
         return true;
     }
 
     private void checkElement(Element element) {
-        List<? extends AnnotationMirror> annotationMirrors = element.getAnnotationMirrors();
-        AnnotationMirror autowired = annotationMirrors.stream().filter(annotation ->
-                annotation.getAnnotationType().toString().equals("org.springframework.beans.factory.annotation.Autowired"))
-                .findFirst().get();
+
         if (element.getKind() == ElementKind.METHOD) {
-            messager.printMessage(Diagnostic.Kind.ERROR, "Autowired is not allowed on methods", element,autowired);
-        }
-        if (element.getKind() == ElementKind.FIELD) {
-            messager.printMessage(Diagnostic.Kind.ERROR, "Autowired is not allowed on fields", element,autowired);
+            messager.printMessage(Diagnostic.Kind.ERROR, "RequestMapping annotation is not applicable to method", element);
         }
 
     }

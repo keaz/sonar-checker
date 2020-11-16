@@ -1,10 +1,11 @@
-package com.kzone.springchecker.validator.generic;
+package com.kzone.sonarchecker.validator.generic;
 
 import com.google.auto.service.AutoService;
-import com.kzone.springchecker.validator.BaseValidator;
+import com.kzone.sonarchecker.validator.BaseValidator;
 import com.sun.source.tree.*;
 import com.sun.source.util.*;
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.util.Name;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.Processor;
@@ -20,7 +21,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -33,14 +33,6 @@ public class FieldValidator extends BaseValidator {
 
     private static final Pattern INSTANCE_FIELD_NAME_PATTERN = Pattern.compile("^[a-z][a-zA-Z0-9]*$");
     private static final Pattern CONSTANT_NAME_PATTERN = Pattern.compile("^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$");
-
-    public static final Predicate<? super Element> FIELD_FILTER = element -> element.getKind() == ElementKind.FIELD && !element.getModifiers().contains(Modifier.STATIC);
-    public static final Predicate<? super Element> CONSTANT_FILTER = element -> {
-        Set<Modifier> modifiers = element.getModifiers();
-        return element.getKind() == ElementKind.FIELD && modifiers.contains(Modifier.STATIC) && modifiers.contains(Modifier.FINAL);
-    };
-
-    private Trees trees = null;
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
@@ -94,9 +86,9 @@ public class FieldValidator extends BaseValidator {
             ElementKind kind = variable.getKind();
             if (isField(kind, modifiers)) {
                 validateFieldName(variable);
-            }else if (isParameter(kind)) {
+            } else if (isParameter(kind)) {
                 validateFieldName(variable);
-            }else if (isConstant(kind, modifiers)) {
+            } else if (isConstant(kind, modifiers)) {
                 validateConstantName(variable);
             }
 
@@ -104,32 +96,79 @@ public class FieldValidator extends BaseValidator {
             TreePath path = trees.getPath(variable);
             Iterator<Tree> iterator = path.iterator();
 
+            String variableName = variable.getSimpleName().toString();
+            String regex;
+            if(variable.getKind() == ElementKind.FIELD){
+                regex = "((\\s)(" + variableName + ")(\\.)*)";
+            }else if(variable.getKind() == ElementKind.LOCAL_VARIABLE){
+                regex = "((\\s)("+variableName+")(\\.)*|(\\s)*(this\\."+variableName+")(\\.)*)";
+            }else {
+                return aVoid;
+            }
+
+            Pattern pattern = Pattern.compile(regex);
+
             while (iterator.hasNext()) {
                 Tree next = iterator.next();
 
                 if (next.getKind() == Tree.Kind.BLOCK) {
                     BlockTree block = (BlockTree) next;
                     List<? extends StatementTree> statements = block.getStatements();
-                    long count = statements.stream().filter(statement -> statement.toString().contains(variable.toString())).count();
-                    if (count == 1) {
-                        messager.printMessage(Diagnostic.Kind.ERROR, "Unused variable", variable);
-                    }
-                } else if (next.getKind() == Tree.Kind.CLASS && variable.getModifiers().contains(Modifier.PRIVATE)) {
+
+                    checkPrivateVariableUsedIn(statements,variable, pattern);
+                    break;
+                }  else if (next.getKind() == Tree.Kind.CLASS) {
 
                     ClassTree classTreeTree = (ClassTree) next;
                     List<? extends Tree> members = classTreeTree.getMembers();
-                    List<? extends JCTree.JCMethodDecl> methods = (List<? extends JCTree.JCMethodDecl>) members
-                            .stream().filter(member -> member.getClass() == JCTree.JCMethodDecl.class).collect(Collectors.toList());
-                    long count = methods.stream().filter(meth -> meth.body.stats.stream().anyMatch(stat ->
-                            stat.toString().contains(variable.toString())
-                    )).count();
-                    if (count == 0) {
-                        messager.printMessage(Diagnostic.Kind.ERROR, "Unused variable", variable);
+                    List<? extends JCTree.JCMethodDecl> methods = members.stream().filter(member -> member.getClass() == JCTree.JCMethodDecl.class)
+                            .map(member -> (JCTree.JCMethodDecl)member).collect(Collectors.toList());
+
+                    List<JCTree.JCStatement> statements = methods.stream().map(JCTree.JCMethodDecl::getBody).map(JCTree.JCBlock::getStatements)
+                            .flatMap(Collection::stream).collect(Collectors.toList());
+
+                    List<JCTree.JCVariableDecl> variables = statements.stream()
+                            .filter(jcStatement -> jcStatement.getKind() == Tree.Kind.VARIABLE)
+                            .map(jcStatement -> (JCTree.JCVariableDecl) jcStatement).collect(Collectors.toList());
+
+                    checkSameVariableNameDefinedIn(variables,variable);
+                    if(variable.getModifiers().contains(Modifier.PRIVATE)){
+                        checkPrivateVariableUsedIn(statements,variable, pattern);
                     }
                 }
             }
             return aVoid;
         }
+
+        /**
+         * java:S111
+         * @param localVariables
+         * @param variable
+         */
+        private void checkSameVariableNameDefinedIn(List<JCTree.JCVariableDecl> localVariables,Element variable){
+            List<String> localVariableNames = localVariables.stream().map(JCTree.JCVariableDecl::getName)
+                    .map(Name::toString).map(String::trim).collect(Collectors.toList());
+            String variableName = variable.getSimpleName().toString();
+            if(localVariableNames.stream().anyMatch(localVariable -> localVariable.contentEquals(variableName))){
+                messager.printMessage(Diagnostic.Kind.ERROR, "Local "+variable.getSimpleName()+" should not shadow class fields", variable);
+            }
+        }
+
+        /**
+         * java:S1481
+         * @param statements
+         * @param privateVariable
+         * @param pattern
+         */
+        private void checkPrivateVariableUsedIn(List<? extends StatementTree> statements, Element privateVariable, Pattern pattern) {
+            long filteredStatementCount = statements.stream().filter(jcStatement -> pattern.matcher(jcStatement.toString()).find()).count();
+            if (privateVariable.getKind() == ElementKind.PARAMETER && filteredStatementCount == 0) {
+                messager.printMessage(Diagnostic.Kind.ERROR, "Unused variable should be removed", privateVariable);
+            } else if (privateVariable.getKind() == ElementKind.LOCAL_VARIABLE && filteredStatementCount > 1) {
+                messager.printMessage(Diagnostic.Kind.ERROR, "Unused variable \""+privateVariable.getSimpleName()+"\" should be removed", privateVariable);
+            }
+        }
+
 
         private boolean isField(ElementKind kind, Collection<Modifier> modifiers) {
             return kind == ElementKind.FIELD && !modifiers.contains(Modifier.STATIC);
